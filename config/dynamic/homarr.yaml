@@ -1,0 +1,13 @@
+http:
+  routers:
+    homarr:
+      rule: Host(`homarr.home.matthomelab.xyz`)
+      entryPoints:
+        - internal
+      service: homarr
+
+  services:
+    homarr:
+      loadBalancer:
+        servers:
+          - url: "http://127.0.0.1:30575"

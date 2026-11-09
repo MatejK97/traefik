@@ -1,0 +1,13 @@
+http:
+  routers:
+    grafana:
+      rule: Host(`grafana.home.matthomelab.xyz`)
+      entryPoints:
+        - internal
+      service: grafana
+
+  services:
+    grafana:
+      loadBalancer:
+        servers:
+          - url: "http://127.0.0.1:30300"

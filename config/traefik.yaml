@@ -1,0 +1,81 @@
+global:
+  checkNewVersion: false
+  sendAnonymousUsage: false
+
+log:
+  level: INFO
+
+api:
+  dashboard: true
+  insecure: false
+
+entryPoints:
+  # aliasHeadersStrategy: drop request headers like X_Auth_User that backends
+  # would read as X-Auth-User, so they can't spoof headers Traefik sets
+  # Public: only services that are explicitly routed to websecure
+  # 203.0.113.10 stands in for the VPS's public IP in this public copy
+  web:
+    address: "203.0.113.10:80"
+    http:
+      aliasHeadersStrategy: delete
+      redirections:
+        entryPoint:
+          to: websecure
+          scheme: https
+  websecure:
+    address: "203.0.113.10:443"
+    http:
+      aliasHeadersStrategy: delete
+      tls:
+        certResolver: cloudflare
+  metrics:
+    address: "10.10.0.1:8082"
+
+  # Private: only reachable over WireGuard. Admin UIs go here, so they can
+  # never become public by accident
+  internal-web:
+    address: "10.10.0.1:80"
+    http:
+      aliasHeadersStrategy: delete
+      redirections:
+        entryPoint:
+          to: internal
+          scheme: https
+  internal:
+    address: "10.10.0.1:443"
+    http:
+      aliasHeadersStrategy: delete
+      encodedCharacters:
+        # GitLab uses encoded slashes in some URLs
+        allowEncodedSlash: true
+      tls:
+        certResolver: cloudflare
+
+certificatesResolvers:
+  cloudflare:
+    acme:
+      email: "info@matthomelab.xyz"
+      storage: /var/traefik/certs/cloudflare-acme.json
+      caServer: "https://acme-v02.api.letsencrypt.org/directory"
+      keyType: EC256
+      dnsChallenge:
+        provider: cloudflare
+        resolvers:
+          - "1.1.1.1:53"
+          - "8.8.8.8:53"
+
+providers:
+  docker:
+    endpoint: "unix:///var/run/docker.sock"
+    exposedByDefault: false
+    # Containers are reached on the shared "frontend" network
+    network: frontend
+  file:
+    directory: /etc/traefik/dynamic
+    watch: true
+
+metrics:
+  prometheus:
+    entryPoint: metrics
+    # Per-router series (one per site), on top of per-service and per-entrypoint
+    addRoutersLabels: true

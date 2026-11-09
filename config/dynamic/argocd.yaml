@@ -1,0 +1,13 @@
+http:
+  routers:
+    argocd:
+      rule: Host(`argocd.home.matthomelab.xyz`)
+      entryPoints:
+        - internal
+      service: argocd
+
+  services:
+    argocd:
+      loadBalancer:
+        servers:
+          - url: "http://127.0.0.1:30080"

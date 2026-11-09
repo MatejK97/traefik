@@ -1,0 +1,16 @@
+---
+services:
+  traefik:
+    image: traefik:v3.7.17
+    container_name: traefik
+    # Host networking: each entrypoint binds to an exact address (public IP or
+    # WireGuard IP), ufw applies to Traefik's ports, and k3s NodePorts are
+    # reachable on 127.0.0.1
+    network_mode: host
+    env_file: ".env"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./config/traefik.yaml:/etc/traefik/traefik.yaml:ro
+      - ./config/dynamic:/etc/traefik/dynamic:ro
+      - ./data/certs/:/var/traefik/certs/:rw
+    restart: unless-stopped

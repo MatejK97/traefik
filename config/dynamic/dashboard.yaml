@@ -1,0 +1,8 @@
+# Traefik dashboard: VPN only
+http:
+  routers:
+    dashboard:
+      rule: Host(`traefik.home.matthomelab.xyz`)
+      entryPoints:
+        - internal
+      service: api@internal

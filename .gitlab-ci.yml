@@ -1,0 +1,7 @@
+include:
+  - project: homelab/ci-templates
+    ref: main
+    file: docker-service.yml
+
+variables:
+  COMPOSE_FILE_NAME: docker-compose.yml

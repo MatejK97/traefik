@@ -1,0 +1,28 @@
+http:
+  routers:
+    # Editor, API and login: VPN only
+    n8n:
+      rule: Host(`n8n.home.matthomelab.xyz`)
+      entryPoints:
+        - internal
+      service: n8n
+    # Public: webhook paths only, rate limited
+    n8n-webhooks:
+      rule: Host(`hooks.matthomelab.xyz`) && (PathPrefix(`/webhook/`) || PathPrefix(`/webhook-test/`))
+      entryPoints:
+        - websecure
+      middlewares:
+        - n8n-webhook-ratelimit
+      service: n8n
+
+  middlewares:
+    n8n-webhook-ratelimit:
+      rateLimit:
+        average: 10
+        burst: 20
+
+  services:
+    n8n:
+      loadBalancer:
+        servers:
+          - url: "http://127.0.0.1:30678"
